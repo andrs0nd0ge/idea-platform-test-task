@@ -17,16 +17,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Application {
+    private final String origin = "VVO";
+    private final String destination = "TLV";
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String jsonPath = "src/main/resources/tickets.json";
     public static void main(String[] args) {
+        Application application = new Application();
+        application.executeFirstTask();
+    }
+
+    private void executeFirstTask() {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            Tickets ticketsObject = objectMapper.readValue(new File("src/main/resources/tickets.json"), Tickets.class);
-
-            List<Ticket> tickets = ticketsObject.getTickets();
+            List<Ticket> tickets = getTickets();
 
             tickets = tickets.stream()
-                    .filter(e -> e.getOrigin().equals("VVO") && e.getDestination().equals("TLV"))
+                    .filter(e -> e.getOrigin().equals(origin) && e.getDestination().equals(destination))
                     .collect(Collectors.toList());
 
             Map<String, List<Ticket>> map = tickets.stream()
@@ -56,7 +61,15 @@ public class Application {
         }
     }
 
-    public static Duration getDuration(Ticket ticket) {
+    private List<Ticket> getTickets() throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        Tickets tickets = objectMapper.readValue(new File(jsonPath), Tickets.class);
+
+        return tickets.getTickets();
+    }
+
+    private Duration getDuration(Ticket ticket) {
         LocalDate arrivalDate = LocalDate.parse(ticket.getArrivalDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
         LocalTime arrivalTime = LocalTime.parse(ticket.getArrivalTime(), DateTimeFormatter.ofPattern("H:mm"));
         LocalDate departureDate = LocalDate.parse(ticket.getDepartureDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
