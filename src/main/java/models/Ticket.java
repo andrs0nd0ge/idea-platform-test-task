@@ -38,5 +38,5 @@ public class Ticket {
     private Integer stops;
 
     @JsonProperty("price")
-    private Integer price;
+    private Double price;
 }

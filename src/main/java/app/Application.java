@@ -25,7 +25,7 @@ public class Application {
     private final String timeFormat = "H:mm";
     public static void main(String[] args) {
         Application application = new Application();
-//        application.executeFirstTask();
+        application.executeFirstTask();
         application.executeSecondTask();
     }
 
@@ -88,52 +88,55 @@ public class Application {
         try {
             List<Ticket> tickets = getTickets();
 
-            tickets = tickets.stream().sorted(Comparator.comparing(Ticket::getPrice)).collect(Collectors.toList());
-
             List<Double> prices = tickets.stream()
+                    .sorted(Comparator.comparing(Ticket::getPrice))
                     .map(Ticket::getPrice)
-                    .map(Integer::doubleValue)
                     .collect(Collectors.toList());
 
-            long count = tickets.size();
+            double median = calculateMedianOf(prices);
 
-            System.out.println(count);
+            OptionalDouble optionalAveragePrice = tickets.stream()
+                    .mapToDouble(Ticket::getPrice)
+                    .average();
 
-            boolean pricesAmountIsEven = count % 2 == 0;
+            if (optionalAveragePrice.isPresent()) {
+                double averagePrice = optionalAveragePrice.getAsDouble();
 
-            double median;
+                double doubleResult = Math.abs(averagePrice - median);
 
-            if (!pricesAmountIsEven) {
-                int middleIndex = (prices.size() - 1) / 2;
-
-                median = prices.get(middleIndex);
-
-                System.out.println(median);
-            } else {
-                int firstIndex = (int) Math.floor((prices.size() - 1) / 2.0);
-
-                int secondIndex = (int) Math.ceil((prices.size() - 1) / 2.0);
-
-                median = (prices.get(firstIndex) + prices.get(secondIndex)) / 2;
-
-                System.out.println(median);
-            }
-
-            for (Ticket ticket : tickets) {
-                System.out.println(ticket.getPrice());
-            }
-
-            OptionalDouble optionalDouble = tickets.stream().mapToDouble(Ticket::getPrice).average();
-
-            if (optionalDouble.isPresent()) {
-                double averagePrice = optionalDouble.getAsDouble();
-
-                double result = Math.abs(averagePrice - median);
-
-                System.out.println(result);
+                try {
+                    int result = (int) doubleResult;
+                    System.out.println(result);
+                } catch (ClassCastException ex) {
+                    System.out.println(doubleResult);
+                }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private double calculateMedianOf(List<Double> pricesList) {
+        int ticketCount = pricesList.size();
+
+        boolean pricesAmountIsEven = ticketCount % 2 == 0;
+
+        double median;
+
+        if (!pricesAmountIsEven) {
+            int middleIndex = (ticketCount - 1) / 2;
+
+            median = pricesList.get(middleIndex);
+
+            return median;
+        } else {
+            int firstIndex = (int) Math.floor((ticketCount - 1) / 2.0);
+
+            int secondIndex = (int) Math.ceil((ticketCount - 1) / 2.0);
+
+            median = (pricesList.get(firstIndex) + pricesList.get(secondIndex)) / 2;
+
+            return median;
         }
     }
 }
