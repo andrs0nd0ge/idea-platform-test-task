@@ -40,7 +40,7 @@ public class Application {
                 String carrier = entry.getKey();
                 List<Ticket> ticketList = entry.getValue();
 
-                Optional<Ticket> durationOptional = ticketList.stream()
+                Optional<Ticket> ticketOptional = ticketList.stream()
                         .min((t1, t2) -> {
                             Duration d1 = getDuration(t1);
                             Duration d2 = getDuration(t2);
@@ -48,8 +48,8 @@ public class Application {
                             return d1.compareTo(d2);
                         });
 
-                if (durationOptional.isPresent()) {
-                    Duration duration = getDuration(durationOptional.get());
+                if (ticketOptional.isPresent()) {
+                    Duration duration = getDuration(ticketOptional.get());
 
                     System.out.println(carrier + ": " + duration.toMinutes() + " minutes");
                 }
@@ -104,12 +104,7 @@ public class Application {
 
                 double doubleResult = Math.abs(averagePrice - median);
 
-                try {
-                    int result = (int) doubleResult;
-                    System.out.println(result);
-                } catch (ClassCastException ex) {
-                    System.out.println(doubleResult);
-                }
+                printSecondTaskResult(doubleResult);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -137,6 +132,15 @@ public class Application {
             median = (pricesList.get(firstIndex) + pricesList.get(secondIndex)) / 2;
 
             return median;
+        }
+    }
+
+    private void printSecondTaskResult(double doubleResult) {
+        try {
+            int result = (int) doubleResult;
+            System.out.println(result);
+        } catch (ClassCastException ex) {
+            System.out.println(doubleResult);
         }
     }
 }
