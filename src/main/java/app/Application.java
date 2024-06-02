@@ -51,7 +51,12 @@ public class Application {
                 if (ticketOptional.isPresent()) {
                     Duration duration = getDuration(ticketOptional.get());
 
-                    System.out.println(carrier + ": " + duration.toMinutes() + " minutes");
+                    String sb = carrier + ": " +
+                            duration.toDays() + " day(-s), " +
+                            duration.toHours() + " hour(-s), " +
+                            duration.toMinutes() % 60 + " minute(-s) ";
+
+                    System.out.println(sb);
                 }
             }
 
@@ -138,11 +143,17 @@ public class Application {
     }
 
     private void printSecondTaskResult(double doubleResult) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Difference between the average price and the median: ");
+
         try {
             int result = (int) doubleResult;
-            System.out.println(result);
+            sb.append(result);
         } catch (ClassCastException ex) {
-            System.out.println(doubleResult);
+            sb.append(doubleResult);
         }
+
+        System.out.println(sb);
     }
 }
