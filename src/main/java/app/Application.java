@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Application {
@@ -31,27 +32,31 @@ public class Application {
             Map<String, List<Ticket>> map = tickets.stream()
                     .collect(Collectors.groupingBy(Ticket::getCarrier));
 
-            for (Map.Entry<String, List<Ticket>> someth : map.entrySet()) {
-                List<Ticket> ticketList = someth.getValue();
+            for (Map.Entry<String, List<Ticket>> some : map.entrySet()) {
 
-                for (Ticket ticket : ticketList) {
-                    LocalDate arrivalDate = LocalDate.parse(ticket.getArrivalDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
-                    LocalTime arrivalTime = LocalTime.parse(ticket.getArrivalTime(), DateTimeFormatter.ofPattern("H:mm"));
-                    LocalDate departureDate = LocalDate.parse(ticket.getDepartureDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
-                    LocalTime departureTime = LocalTime.parse(ticket.getDepartureTime(), DateTimeFormatter.ofPattern("H:mm"));
+                List<Duration> durations = some.getValue().stream()
+                        .map(ticket -> {
+                            LocalDate arrivalDate = LocalDate.parse(ticket.getArrivalDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
+                            LocalTime arrivalTime = LocalTime.parse(ticket.getArrivalTime(), DateTimeFormatter.ofPattern("H:mm"));
+                            LocalDate departureDate = LocalDate.parse(ticket.getDepartureDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
+                            LocalTime departureTime = LocalTime.parse(ticket.getDepartureTime(), DateTimeFormatter.ofPattern("H:mm"));
 
-                    LocalDateTime arrivalDateTime = LocalDateTime.of(arrivalDate, arrivalTime);
+                            LocalDateTime arrivalDateTime = LocalDateTime.of(arrivalDate, arrivalTime);
+                            LocalDateTime departureDateTime = LocalDateTime.of(departureDate, departureTime);
 
-                    LocalDateTime departureDateTime = LocalDateTime.of(departureDate, departureTime);
+                            return Duration.between(departureDateTime, arrivalDateTime);
+                        })
+                        .collect(Collectors.toList());
 
-                    Duration duration = Duration.between(departureDateTime, arrivalDateTime);
+                Optional<Duration> durationOptional = durations.stream().min(Duration::compareTo);
+
+                if (durationOptional.isPresent()) {
+                    Duration duration = durationOptional.get();
 
                     System.out.println(duration.toMinutes());
-                    System.out.println(ticket.getCarrier() + ":");
-                    System.out.println(departureDate + ", " + departureTime);
-                    System.out.println(arrivalDate + ", " + arrivalTime + "\n");
                 }
             }
+
         } catch (IOException ex) {
             ex.printStackTrace();
         }
