@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import models.Ticket;
 import models.Tickets;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ public class Application {
     private final String origin = "VVO";
     private final String destination = "TLV";
     @SuppressWarnings("FieldCanBeLocal")
-    private final String jsonPath = "src/main/resources/tickets.json";
+    private final String jsonPath = "/tickets.json";
     @SuppressWarnings("FieldCanBeLocal")
     private final String dateFormat = "dd.MM.yy";
     @SuppressWarnings("FieldCanBeLocal")
@@ -63,7 +63,9 @@ public class Application {
     private List<Ticket> getTickets() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        Tickets tickets = objectMapper.readValue(new File(jsonPath), Tickets.class);
+        InputStream inputStream = getClass().getResourceAsStream(jsonPath);
+
+        Tickets tickets = objectMapper.readValue(inputStream, Tickets.class);
 
         List<Ticket> ticketList = tickets.getTickets();
 
