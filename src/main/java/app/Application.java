@@ -11,9 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Application {
@@ -21,18 +19,19 @@ public class Application {
     private final String destination = "TLV";
     @SuppressWarnings("FieldCanBeLocal")
     private final String jsonPath = "src/main/resources/tickets.json";
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String dateFormat = "dd.MM.yy";
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String timeFormat = "H:mm";
     public static void main(String[] args) {
         Application application = new Application();
-        application.executeFirstTask();
+//        application.executeFirstTask();
+        application.executeSecondTask();
     }
 
     private void executeFirstTask() {
         try {
             List<Ticket> tickets = getTickets();
-
-            tickets = tickets.stream()
-                    .filter(e -> e.getOrigin().equals(origin) && e.getDestination().equals(destination))
-                    .collect(Collectors.toList());
 
             Map<String, List<Ticket>> map = tickets.stream()
                     .collect(Collectors.groupingBy(Ticket::getCarrier));
@@ -66,18 +65,75 @@ public class Application {
 
         Tickets tickets = objectMapper.readValue(new File(jsonPath), Tickets.class);
 
-        return tickets.getTickets();
+        List<Ticket> ticketList = tickets.getTickets();
+
+        return ticketList.stream()
+                .filter(e -> e.getOrigin().equals(origin) && e.getDestination().equals(destination))
+                .collect(Collectors.toList());
     }
 
     private Duration getDuration(Ticket ticket) {
-        LocalDate arrivalDate = LocalDate.parse(ticket.getArrivalDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
-        LocalTime arrivalTime = LocalTime.parse(ticket.getArrivalTime(), DateTimeFormatter.ofPattern("H:mm"));
-        LocalDate departureDate = LocalDate.parse(ticket.getDepartureDate(), DateTimeFormatter.ofPattern("dd.MM.yy"));
-        LocalTime departureTime = LocalTime.parse(ticket.getDepartureTime(), DateTimeFormatter.ofPattern("H:mm"));
+        LocalDate arrivalDate = LocalDate.parse(ticket.getArrivalDate(), DateTimeFormatter.ofPattern(dateFormat));
+        LocalTime arrivalTime = LocalTime.parse(ticket.getArrivalTime(), DateTimeFormatter.ofPattern(timeFormat));
+        LocalDate departureDate = LocalDate.parse(ticket.getDepartureDate(), DateTimeFormatter.ofPattern(dateFormat));
+        LocalTime departureTime = LocalTime.parse(ticket.getDepartureTime(), DateTimeFormatter.ofPattern(timeFormat));
 
         LocalDateTime arrivalDateTime = LocalDateTime.of(arrivalDate, arrivalTime);
         LocalDateTime departureDateTime = LocalDateTime.of(departureDate, departureTime);
 
         return Duration.between(departureDateTime, arrivalDateTime);
+    }
+
+    private void executeSecondTask() {
+        try {
+            List<Ticket> tickets = getTickets();
+
+            tickets = tickets.stream().sorted(Comparator.comparing(Ticket::getPrice)).collect(Collectors.toList());
+
+            List<Double> prices = tickets.stream()
+                    .map(Ticket::getPrice)
+                    .map(Integer::doubleValue)
+                    .collect(Collectors.toList());
+
+            long count = tickets.size();
+
+            System.out.println(count);
+
+            boolean pricesAmountIsEven = count % 2 == 0;
+
+            double median;
+
+            if (!pricesAmountIsEven) {
+                int middleIndex = (prices.size() - 1) / 2;
+
+                median = prices.get(middleIndex);
+
+                System.out.println(median);
+            } else {
+                int firstIndex = (int) Math.floor((prices.size() - 1) / 2.0);
+
+                int secondIndex = (int) Math.ceil((prices.size() - 1) / 2.0);
+
+                median = (prices.get(firstIndex) + prices.get(secondIndex)) / 2;
+
+                System.out.println(median);
+            }
+
+            for (Ticket ticket : tickets) {
+                System.out.println(ticket.getPrice());
+            }
+
+            OptionalDouble optionalDouble = tickets.stream().mapToDouble(Ticket::getPrice).average();
+
+            if (optionalDouble.isPresent()) {
+                double averagePrice = optionalDouble.getAsDouble();
+
+                double result = Math.abs(averagePrice - median);
+
+                System.out.println(result);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }
